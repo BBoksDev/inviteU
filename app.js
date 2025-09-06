@@ -9,7 +9,7 @@ const EVENT_CONFIG = {
 
   // 만남(= 헤어짐) 장소
   meetPlace: "조천청소년문화의집",
-  meetAddress: "제주 제주시 조천읍 신북로 194-1 조천청소년문화의집",
+  meetAddress: "제주 제주시 조천읍 신북로 194-1",
   meetMapUrl: "https://naver.me/xCBNUtOH",
 
   // 파티/숙소
@@ -17,17 +17,22 @@ const EVENT_CONFIG = {
   partyAddress: "제주 서귀포시 산록남로 1966-34 아이브리조트",
   partyMapUrl: "https://naver.me/5uIMHe16",
 
-  contact: "은우엄마: 010-8347-1287 (문자 가능)",
-  // hero 부제/문구/칩/상단이미지 사용 안함
+  // 연락처(엄마/아빠)
+  contacts: {
+    mom: { label: "엄마", name: "은우엄마", phone: "010-8347-1287", note: "" },
+    dad: { label: "아빠", name: "은우아빠", phone: "010-3119-8071", note: "" }
+  },
+
+  // 색상 테마
   themeColors: ["#3b82f6","#22c55e","#06b6d4"],
 };
 
 const GUEST_LIST = ["박상복","장선미","박시우","박은우","박준우","김재윤","송연우","송승화","김하준"];
-const INVITE_CODE = "JC5207";
+const INVITE_CODE = "BEST5";
 
-// 전달 수신자(문자 번호는 고정 가능)
-const ORGANIZER_NAME = "은우엄마";
-const ORGANIZER_PHONE = "01083471287"; // 숫자만, 비워두면 수신자 미지정
+// (기존) 전달 수신자 — 고정값 → 선택형으로 대체 사용
+const ORGANIZER_NAME = "은우 엄마";
+const ORGANIZER_PHONE = "01083471287"; // 사용 안 해도 무방 (선택값 우선)
 const KAKAO_JS_KEY = "여기에_카카오_자바스크립트_키"; // Kakao.init()에 사용
 
 // ====== 유틸 ======
@@ -43,38 +48,56 @@ const fmtDateKST = (iso) => {
   const mm = d.getMinutes().toString().padStart(2,"0");
   return `${y}년 ${m}월 ${day}일(${wd}) ${hh}:${mm}`;
 };
+const onlyDigits = s => (s || "").replace(/[^0-9]/g, "");
 
 // ====== 초기 세팅 ======
 (function init(){
-  // 테마
+  // 색상 테마
   document.documentElement.style.setProperty("--primary", EVENT_CONFIG.themeColors[0] || "#3b82f6");
   document.documentElement.style.setProperty("--accent",  EVENT_CONFIG.themeColors[1] || "#22c55e");
   document.documentElement.style.setProperty("--accent-2",EVENT_CONFIG.themeColors[2] || "#06b6d4");
 
   $("#year").textContent = new Date().getFullYear();
   $("#kidName").textContent = `${EVENT_CONFIG.kidName}의 ${EVENT_CONFIG.kidAge}번째 생일파티에 초대합니다!`;
+  
+  // 장소 (한 번만)
+	$("#meetWhereText").textContent = EVENT_CONFIG.meetPlace || EVENT_CONFIG.meetAddress;
 
-  // 좌측: 만남 & 헤어짐(같은 장소)
-  $("#meetWhereText").textContent  = EVENT_CONFIG.meetAddress || EVENT_CONFIG.meetPlace;
-  $("#meetWhenText").textContent   = fmtDateKST(EVENT_CONFIG.dateStr);
-  $("#meetMapLink").href           = EVENT_CONFIG.meetMapUrl || "#";
+	// 모이는 시간
+	$("#meetWhenText").textContent  = fmtDateKST(EVENT_CONFIG.dateStr);
 
-  $("#leaveWhereText").textContent = EVENT_CONFIG.meetAddress || EVENT_CONFIG.meetPlace;
-  $("#leaveWhenText").textContent  = fmtDateKST(EVENT_CONFIG.endStr);
-  $("#leaveMapLink").href          = EVENT_CONFIG.meetMapUrl || "#";
+	// 마무리 시간
+	$("#leaveWhenText").textContent = fmtDateKST(EVENT_CONFIG.endStr);
 
   // 우측: 파티/숙소
-  $("#partyWhereText").textContent = EVENT_CONFIG.partyAddress || EVENT_CONFIG.partyPlace;
-  $("#partyMapLink").href          = EVENT_CONFIG.partyMapUrl || "#";
+  $("#partyWhereText").textContent = EVENT_CONFIG.partyPlace || EVENT_CONFIG.partyAddress;
 
-  // 연락처
-  $("#contactText").textContent = EVENT_CONFIG.contact;
-	// 연락처 세팅
-	$("#contactLink").href = `tel:${ORGANIZER_PHONE}`;
+  // 연락처(엄마/아빠) — tel: 링크/텍스트 세팅
+  const mom = EVENT_CONFIG.contacts?.mom;
+  const dad = EVENT_CONFIG.contacts?.dad;
+  if (mom) {
+    const momA = $("#contactMom");
+    momA.href = `tel:${onlyDigits(mom.phone)}`;
+    momA.textContent = `${mom.name || mom.label}: ${mom.phone}${mom.note ? ` (${mom.note})` : ""}`;
+  }
+  if (dad) {
+    const dadA = $("#contactDad");
+    dadA.href = `tel:${onlyDigits(dad.phone)}`;
+    dadA.textContent = `${dad.name || dad.label}: ${dad.phone}${dad.note ? ` (${dad.note})` : ""}`;
+  }
 
+  // 칩
+  const chips = [
+    `🗓 ${fmtDateKST(EVENT_CONFIG.dateStr)}`,
+    `⏰ ${(new Date(EVENT_CONFIG.dateStr)).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}~${(new Date(EVENT_CONFIG.endStr)).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}`,
+    `📍 ${EVENT_CONFIG.place || EVENT_CONFIG.meetPlace}`
+  ];
+  const frag = document.createDocumentFragment();
+  chips.forEach(t=>{ const c=document.createElement("span"); c.className="chip"; c.textContent=t; frag.appendChild(c); });
+  $("#quickChips").appendChild(frag);
 
-  // 전달 수신자 표시
-  $("#hostDisplay").textContent = `${ORGANIZER_NAME}${ORGANIZER_PHONE ? ` · ${ORGANIZER_PHONE}` : ""}`;
+  // 전달 수신자 표시 초기화
+  updateRecipientDisplay();
 
   // Kakao SDK init (실키로 교체!)
   try {
@@ -112,18 +135,24 @@ gateForm.addEventListener("submit", (e)=>{
   history.replaceState(null,"", location.pathname + `?guest=${encodeURIComponent(name)}`);
 });
 
-// 복사 버튼
+// 개별 주소 복사
 $("#copyMeetAddr").addEventListener("click", async ()=>{
-  try{ await navigator.clipboard.writeText(EVENT_CONFIG.meetAddress || EVENT_CONFIG.meetPlace); alert("만나는 곳 주소 복사 완료!"); }
-  catch{ alert("복사 실패"); }
-});
-$("#copyLeaveAddr").addEventListener("click", async ()=>{
-  try{ await navigator.clipboard.writeText(EVENT_CONFIG.meetAddress || EVENT_CONFIG.meetPlace); alert("헤어질 곳 주소 복사 완료!"); }
+  try{ await navigator.clipboard.writeText(EVENT_CONFIG.meetAddress || EVENT_CONFIG.meetPlace); alert("모임장소 주소 복사 완료!"); }
   catch{ alert("복사 실패"); }
 });
 $("#copyPartyAddr").addEventListener("click", async ()=>{
-  try{ await navigator.clipboard.writeText(EVENT_CONFIG.partyAddress || EVENT_CONFIG.partyPlace); alert("파티/숙소 주소 복사 완료!"); }
+  try{ await navigator.clipboard.writeText(EVENT_CONFIG.partyAddress || EVENT_CONFIG.partyPlace); alert("파티장소(숙소) 주소 복사 완료!"); }
   catch{ alert("복사 실패"); }
+});
+
+// ====== 지도 열기: 버튼으로 변경됨 ======
+$("#meetMapBtn").addEventListener("click", ()=>{
+  const url = EVENT_CONFIG.meetMapUrl || "#";
+  window.open(url, "_blank", "noopener");
+});
+$("#partyMapBtn").addEventListener("click", ()=>{
+  const url = EVENT_CONFIG.partyMapUrl || "#";
+  window.open(url, "_blank", "noopener");
 });
 
 // ====== 전달 로직 ======
@@ -141,12 +170,28 @@ function buildShareText(){
     `📨 전달사항(${gateName})`,
     note ? `• 메모: ${note}` : null,
     `• 만남: ${meet} · ${meetWhen}`,
-    `• 헤어짐: ${meet} · ${leaveWhen}`, // 동일 장소
+    `• 헤어짐: ${meet} · ${leaveWhen}`,
     `• 파티장소: ${party}`,
     `• 초대장: ${link}`
   ].filter(Boolean).join("\n");
 }
 
+// 수신자 선택/표시/번호 얻기
+function getSelectedRecipient(){
+  const sel = $("#recipientSelect");
+  const key = sel ? sel.value : "mom";
+  const contacts = EVENT_CONFIG.contacts || {};
+  return contacts[key] || contacts["mom"] || { label:"", name: ORGANIZER_NAME, phone: ORGANIZER_PHONE };
+}
+function updateRecipientDisplay(){
+  const r = getSelectedRecipient();
+  $("#hostDisplay").textContent = `${(r.name || r.label) || ""}${r.phone ? ` · ${r.phone}` : ""}`;
+}
+document.addEventListener("change", (e)=>{
+  if (e.target && e.target.id === "recipientSelect") updateRecipientDisplay();
+});
+
+// 카카오톡 공유 (수신자는 공유창에서 선택)
 async function sendViaKakao(){
   const text = buildShareText();
   if (!(window.Kakao && Kakao.isInitialized && Kakao.isInitialized())) {
@@ -161,11 +206,13 @@ async function sendViaKakao(){
   });
 }
 
+// 문자 보내기 (선택된 수신자 번호로)
 function sendViaSMS(){
   const text = buildShareText();
   const ua = navigator.userAgent.toLowerCase();
   const isIOS = /iphone|ipad|ipod/.test(ua);
-  const phone = ORGANIZER_PHONE || "";
+  const r = getSelectedRecipient();
+  const phone = (r.phone && onlyDigits(r.phone)) || onlyDigits(ORGANIZER_PHONE) || "";
   const body = encodeURIComponent(text);
   const smsUrl = isIOS ? `sms:${phone}&body=${body}` : `sms:${phone}?body=${body}`;
   try{ location.href = smsUrl; }catch{ alert("문자 앱을 열 수 없는 환경입니다. 모바일에서 이용해 주세요."); }

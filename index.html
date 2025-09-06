@@ -51,33 +51,32 @@
         <div class="hero card">
           <div class="banner">🎂 11th BIRTHDAY PARTY</div>
           <h2 id="kidName" class="title"></h2>
-          <!-- 부제/칩/상단이미지 제거 -->
-        </div>
+          <p class="subtitle" id="tagline">함께 놀고 케이크도 나눠먹어요 🍰</p>
 
-				<div class="card" style="grid-column:1 / -1">
-					<img id="posterImg" class="photo" src="images/poster.jpg" alt="초대 포스터 이미지" />
-				</div>
+          <div class="chips" id="quickChips"></div>
+
+          <div class="card" style="grid-column:1 / -1">
+            <img id="posterImg" class="photo" src="images/poster.jpg" alt="초대 포스터 이미지" loading="lazy" />
+          </div>
+        </div>
 
         <div class="grid">
           <!-- ⬅️ 좌측: 만남 & 헤어짐(= 같은 장소) -->
           <div class="card info">
             <div class="icon">📍</div>
             <div>
-              <h3>만날장소 / 시간</h3>
-              <p id="meetWhereText"></p>
-              <p id="meetWhenText"></p>
-              <p class="hint">
-                <a id="meetMapLink" href="#" target="_blank" rel="noopener">지도 열기</a>
-                · <button id="copyMeetAddr" class="btn-ghost" type="button">주소 복사</button>
-              </p>
+              <h3>모임장소</h3>
+              <div class="place-row">
+							  <span id="meetWhereText"></span>
+							  <button id="meetMapBtn" class="btn-naver" type="button">지도 열기</button>
+							  <button id="copyMeetAddr" class="btn-ghost" type="button">주소 복사</button>
+							</div>
 
-              <h3 style="margin-top:12px">헤어질장소 / 시간</h3>
-              <p id="leaveWhereText"></p>
-              <p id="leaveWhenText"></p>
-              <p class="hint">
-                <a id="leaveMapLink" href="#" target="_blank" rel="noopener">지도 열기</a>
-                · <button id="copyLeaveAddr" class="btn-ghost" type="button">주소 복사</button>
-              </p>
+							<h3>모이는 시간</h3>
+							<p id="meetWhenText"></p>
+
+							<h3>마무리 시간</h3>
+							<p id="leaveWhenText"></p>
             </div>
           </div>
 
@@ -85,27 +84,35 @@
           <div class="card info">
             <div class="icon">🏡</div>
             <div>
-              <h3>파티장소 (숙소)</h3>
-              <p id="partyWhereText"></p>
-              <p class="hint">
-                <a id="partyMapLink" href="#" target="_blank" rel="noopener">지도 열기</a>
-                · <button id="copyPartyAddr" class="btn-ghost" type="button">주소 복사</button>
-              </p>
+              <h3>파티장소(숙소)</h3>
+              <div class="place-row">
+							  <span id="partyWhereText"></span>
+							  <button id="partyMapBtn" class="btn-naver" type="button">지도 열기</button>
+							  <button id="copyPartyAddr" class="btn-ghost" type="button">주소 복사</button>
+							</div>
             </div>
           </div>
 
           <!-- 🖼 포스터 이미지(초대문구 대체) -->
           <div class="card" style="grid-column:1 / -1">
-            <img id="posterImg" class="poster" src="images/invite.jpg" alt="초대의 글 이미지" />
+            <div class="send-header">
+              <div class="icon">📝</div>
+              <h3>초대문구</h3>
+            </div>
+            <div class="send-body">
+              <img id="posterImg2" class="poster" src="images/invite.jpg" alt="초대의 글 이미지" loading="lazy" />
+            </div>
           </div>
 
+          <!-- 연락처 (엄마/아빠) -->
           <div class="card info">
             <div class="icon">📞</div>
             <div>
-              <h3>연락처</h3>
-              <a id="contactLink">
-	              <p id="contactText"></p>
-            	</a>
+              <h3>연락처 - 전화걸기</h3>
+              <ul class="contact-list">
+                <li><a id="contactMom" class="tel" href="#"></a></li>
+                <li><a id="contactDad" class="tel" href="#"></a></li>
+              </ul>
             </div>
           </div>
 
@@ -119,17 +126,29 @@
 
           <!-- ✅ 전달사항 (버튼 2개만) -->
           <div class="card send-wrap" style="grid-column:1 / -1">
-            <div class="icon">💬</div>
-            <div style="flex:1">
+            <div class="send-header">
+              <span class="icon">💬</span>
               <h3>주최자에게 전달사항 보내기</h3>
+            </div>
+            <div class="send-body">
               <label for="hostNote" class="sr-only">전달메시지</label>
               <textarea id="hostNote" rows="3" placeholder="알레르기/주차/시간 등 전달하고 싶은 내용을 적어주세요."></textarea>
-              <div class="who">받는 사람: <span id="hostDisplay"></span></div>
-              <div class="actions">
-                <button type="button" id="btnKakao" aria-label="카카오톡으로 전달">카톡으로 전달</button>
-                <button type="button" class="btn-ghost" id="btnSMS" aria-label="메세지로 전달">메세지로 전달</button>
+
+              <!-- 받는 사람 선택 -->
+              <div class="who">
+                받는 사람:
+                <select id="recipientSelect" aria-label="받는 사람 선택">
+                  <option value="mom">엄마</option>
+                  <option value="dad">아빠</option>
+                </select>
+                · <span id="hostDisplay"></span>
               </div>
-              <p class="hint" style="margin-top:8px">※ 카톡은 공유창이 열리며, 대상을 직접 선택해야 합니다(카카오 정책). 메세지는 지정 번호로 바로 작성됩니다.</p>
+
+              <div class="actions">
+                <button type="button" id="btnKakao">카톡으로 전달</button>
+                <button type="button" class="btn-ghost" id="btnSMS">문자로 전달</button>
+              </div>
+              <p class="hint">※ 카톡은 정책상 수신자를 미리 지정할 수 없으며, 공유창에서 선택합니다.</p>
             </div>
           </div>
         </div>
