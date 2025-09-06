@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>생일파티 초대장</title>
+  <meta name="theme-color" content="#3b82f6" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="logo" aria-hidden="true">🎉</div>
+      <div class="brand">
+        <h1>생일파티 초대장</h1>
+        <p class="muted">입장 인증 후 초대장을 확인하세요</p>
+      </div>
+    </header>
+
+    <div class="container">
+      <!-- ✅ STEP 1: 인증 -->
+      <section id="gate" class="card view active" aria-labelledby="gate-title">
+        <span class="pill">STEP 1 · 초대 확인</span>
+        <h2 id="gate-title">이름과 초대코드를 입력해 주세요</h2>
+        <p class="muted">게스트 <b>이름과 초대코드가 모두 일치</b>해야 입장할 수 있어요.</p>
+
+        <form id="gateForm" class="form" novalidate>
+          <div>
+            <label for="guestName">이름</label>
+            <input id="guestName" name="guestName" placeholder="이름을 입력해주세요" autocomplete="name" value="박상복" required />
+          </div>
+          <div class="row">
+            <div>
+              <label for="code">초대코드</label>
+              <input id="code" name="code" placeholder="초대코드를 입력해주세요" inputmode="latin" value="best5" required />
+            </div>
+          </div>
+
+          <div class="row">
+            <button type="submit" aria-label="초대장 입장">입장하기</button>
+          </div>
+          <p id="gateError" class="hint" role="alert" style="color:#be123c;font-weight:700;display:none">
+            이름과 코드가 맞는지 확인해 주세요.
+          </p>
+        </form>
+      </section>
+
+      <!-- ✅ STEP 2: 초대장 메인 -->
+      <section id="invite" class="view" aria-label="초대장">
+        <div class="hero card">
+          <div class="banner">🎂 11th BIRTHDAY PARTY</div>
+          <h2 id="kidName" class="title"></h2>
+          <!-- 부제/칩/상단이미지 제거 -->
+        </div>
+
+				<div class="card" style="grid-column:1 / -1">
+					<img id="posterImg" class="photo" src="images/poster.jpg" alt="초대 포스터 이미지" />
+				</div>
+
+        <div class="grid">
+          <!-- ⬅️ 좌측: 만남 & 헤어짐(= 같은 장소) -->
+          <div class="card info">
+            <div class="icon">📍</div>
+            <div>
+              <h3>만날장소 / 시간</h3>
+              <p id="meetWhereText"></p>
+              <p id="meetWhenText"></p>
+              <p class="hint">
+                <a id="meetMapLink" href="#" target="_blank" rel="noopener">지도 열기</a>
+                · <button id="copyMeetAddr" class="btn-ghost" type="button">주소 복사</button>
+              </p>
+
+              <h3 style="margin-top:12px">헤어질장소 / 시간</h3>
+              <p id="leaveWhereText"></p>
+              <p id="leaveWhenText"></p>
+              <p class="hint">
+                <a id="leaveMapLink" href="#" target="_blank" rel="noopener">지도 열기</a>
+                · <button id="copyLeaveAddr" class="btn-ghost" type="button">주소 복사</button>
+              </p>
+            </div>
+          </div>
+
+          <!-- ➡️ 우측: 파티 장소(숙소) -->
+          <div class="card info">
+            <div class="icon">🏡</div>
+            <div>
+              <h3>파티장소 (숙소)</h3>
+              <p id="partyWhereText"></p>
+              <p class="hint">
+                <a id="partyMapLink" href="#" target="_blank" rel="noopener">지도 열기</a>
+                · <button id="copyPartyAddr" class="btn-ghost" type="button">주소 복사</button>
+              </p>
+            </div>
+          </div>
+
+          <!-- 🖼 포스터 이미지(초대문구 대체) -->
+          <div class="card" style="grid-column:1 / -1">
+            <img id="posterImg" class="poster" src="images/invite.jpg" alt="초대의 글 이미지" />
+          </div>
+
+          <div class="card info">
+            <div class="icon">📞</div>
+            <div>
+              <h3>연락처</h3>
+              <p id="contactText">부모님: 010-0000-0000 (문자 가능)</p>
+            </div>
+          </div>
+
+          <div class="card info">
+            <div class="icon">✅</div>
+            <div>
+              <h3>참석 정보</h3>
+              <p id="attendInfo" class="muted">누가 몇 명 참석하는지 여기에 표시됩니다.</p>
+            </div>
+          </div>
+
+          <!-- ✅ 전달사항 (버튼 2개만) -->
+          <div class="card send-wrap" style="grid-column:1 / -1">
+            <div class="icon">💬</div>
+            <div style="flex:1">
+              <h3>주최자에게 전달사항 보내기</h3>
+              <label for="hostNote" class="sr-only">전달메시지</label>
+              <textarea id="hostNote" rows="3" placeholder="알레르기/주차/시간 등 전달하고 싶은 내용을 적어주세요."></textarea>
+              <div class="who">받는 사람: <span id="hostDisplay"></span></div>
+              <div class="actions">
+                <button type="button" id="btnKakao" aria-label="카카오톡으로 전달">카톡으로 전달</button>
+                <button type="button" class="btn-ghost" id="btnSMS" aria-label="문자로 전달">문자로 전달</button>
+              </div>
+              <p class="hint" style="margin-top:8px">※ 카톡은 공유창이 열리며, 대상을 직접 선택해야 합니다(카카오 정책). 문자는 지정 번호로 바로 작성됩니다.</p>
+            </div>
+          </div>
+        </div>
+
+        <footer>© <span id="year"></span> Birthday Invite · Boys Blue/Lime Theme</footer>
+      </section>
+    </div>
+  </div>
+
+  <div id="confetti" class="confetti" aria-hidden="true"></div>
+
+  <!-- Kakao SDK -->
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+</body>
+</html>
