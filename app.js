@@ -5,7 +5,6 @@ const EVENT_CONFIG = {
 
   // 일정
   dateStr: "2025-09-20T13:30:00+09:00",
-  endStr:  "2025-09-21T12:00:00+09:00",
 
   // 만남(= 헤어짐) 장소
   meetPlace: "조천청소년문화의집",
@@ -17,6 +16,14 @@ const EVENT_CONFIG = {
   partyAddress: "제주 서귀포시 산록남로 1966-34 아이브리조트",
   partyMapUrl: "https://naver.me/5uIMHe16",
 
+	stuff: [
+    "칫솔 등 개인 세면도구",
+    "수영복 🩱(기능성옷가능)",
+    "수영모 🧢(일반모자가능)",
+    "잠옷 👘",
+    "여벌옷 👕"
+  ],
+
   // 연락처(엄마/아빠)
   contacts: {
     mom: { label: "엄마", name: "은우엄마", phone: "010-8347-1287", note: "" },
@@ -26,18 +33,18 @@ const EVENT_CONFIG = {
   // 일정
   schedule: {
 	  "1일차": [
-	    { time: "14:00", desc: "모임 장소 집결" },
+	    { time: "13:30", desc: "모임 장소 집결" },
 	    { time: "14:30", desc: "리조트 체크인 & 짐 정리" },
-	    { time: "15:00", desc: "생일 파티 시작 🎉 (게임·놀이·포토타임)" },
+	    { time: "15:00", desc: "물놀이 🤿" },
 	    { time: "18:00", desc: "저녁 식사 & 케이크 커팅 🍰" },
-	    { time: "20:00", desc: "자유 시간 (보드게임/수영장/담소)" },
+	    { time: "20:00", desc: "자유 시간 (보드게임/게임/담소)" },
 	    { time: "23:00", desc: "취침 🛌" }
 	  ],
 	  "2일차": [
-	    { time: "08:00", desc: "아침 식사 ☕" },
-	    { time: "09:00", desc: "체크아웃 준비" },
-	    { time: "10:30", desc: "리조트 체크아웃" },
-	    { time: "11:00", desc: "마무리 & 헤어짐 👋" }
+	    { time: "09:00", desc: "아침 식사 ☕" },
+	    { time: "10:30", desc: "체크아웃 준비" },
+	    { time: "11:00", desc: "리조트 체크아웃" },
+	    { time: "12:00", desc: "귀가 & 헤어짐 👋" }
 	  ]
 	},
 
@@ -64,10 +71,10 @@ const GUEST_PASSWORDS = {
   "박시우": "5100",
   "박은우": "9025",
   "박준우": "9024",
-  "김재윤": "pw1111",
-  "송연우": "pw2222",
-  "송승화": "pw3333",
-  "김하준": "pw4444"
+  "김재윤": "6352",
+  "김하준": "4664",
+  "송승화": "4377",
+  "송연우": "6175"
 };
 
 // (기존) 전달 수신자 — 고정값 → 선택형으로 대체 사용
@@ -105,11 +112,18 @@ const onlyDigits = s => (s || "").replace(/[^0-9]/g, "");
 	// 모이는 시간
 	$("#meetWhenText").textContent  = fmtDateKST(EVENT_CONFIG.dateStr);
 
-	// 마무리 시간
-	$("#leaveWhenText").textContent = fmtDateKST(EVENT_CONFIG.endStr);
-
   // 우측: 파티/숙소
   $("#partyWhereText").textContent = EVENT_CONFIG.partyPlace || EVENT_CONFIG.partyAddress;
+
+	// 준비물 렌더링
+  const ul = document.getElementById("stuffList");
+  if (ul && EVENT_CONFIG.stuff) {
+    EVENT_CONFIG.stuff.forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      ul.appendChild(li);
+    });
+  }
 
   // 연락처(엄마/아빠) — tel: 링크/텍스트 세팅
   const mom = EVENT_CONFIG.contacts?.mom;
@@ -125,16 +139,6 @@ const onlyDigits = s => (s || "").replace(/[^0-9]/g, "");
     dadA.textContent = `${dad.name || dad.label}: ${dad.phone}${dad.note ? ` (${dad.note})` : ""}`;
   }
 
-  // 칩
-  const chips = [
-    `🗓 ${fmtDateKST(EVENT_CONFIG.dateStr)}`,
-    `⏰ ${(new Date(EVENT_CONFIG.dateStr)).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}~${(new Date(EVENT_CONFIG.endStr)).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}`,
-    `📍 ${EVENT_CONFIG.place || EVENT_CONFIG.meetPlace}`
-  ];
-  const frag = document.createDocumentFragment();
-  chips.forEach(t=>{ const c=document.createElement("span"); c.className="chip"; c.textContent=t; frag.appendChild(c); });
-  $("#quickChips").appendChild(frag);
-  
   const root = document.getElementById("scheduleList");
   if (!root) return;
   root.innerHTML = ""; // 초기화
@@ -253,19 +257,9 @@ function buildShareText(){
   const gateName = ($("#guestName").value || "게스트").trim();
   const note  = ($("#hostNote").value || "").trim();
 
-  const meetWhen = fmtDateKST(EVENT_CONFIG.dateStr);
-  const leaveWhen = fmtDateKST(EVENT_CONFIG.endStr);
-  const meet = `${EVENT_CONFIG.meetPlace} (${EVENT_CONFIG.meetAddress})`;
-  const party = `${EVENT_CONFIG.partyPlace} (${EVENT_CONFIG.partyAddress})`;
-  const link  = location.href;
-
   return [
     `📨 전달사항(${gateName})`,
-    note ? `• 메모: ${note}` : null,
-    `• 만남: ${meet} · ${meetWhen}`,
-    `• 헤어짐: ${meet} · ${leaveWhen}`,
-    `• 파티장소: ${party}`,
-    `• 초대장: ${link}`
+    note ? `• 메모: ${note}` : `• 주소: \n• 메모: `
   ].filter(Boolean).join("\n");
 }
 
