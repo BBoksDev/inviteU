@@ -22,18 +22,45 @@ const EVENT_CONFIG = {
     mom: { label: "엄마", name: "은우엄마", phone: "010-8347-1287", note: "" },
     dad: { label: "아빠", name: "은우아빠", phone: "010-3119-8071", note: "" }
   },
+  
+  // 일정
+  schedule: {
+	  "1일차": [
+	    { time: "14:00", desc: "모임 장소 집결" },
+	    { time: "14:30", desc: "리조트 체크인 & 짐 정리" },
+	    { time: "15:00", desc: "생일 파티 시작 🎉 (게임·놀이·포토타임)" },
+	    { time: "18:00", desc: "저녁 식사 & 케이크 커팅 🍰" },
+	    { time: "20:00", desc: "자유 시간 (보드게임/수영장/담소)" },
+	    { time: "23:00", desc: "취침 🛌" }
+	  ],
+	  "2일차": [
+	    { time: "08:00", desc: "아침 식사 ☕" },
+	    { time: "09:00", desc: "체크아웃 준비" },
+	    { time: "10:30", desc: "리조트 체크아웃" },
+	    { time: "11:00", desc: "마무리 & 헤어짐 👋" }
+	  ]
+	},
 
   // 색상 테마
   themeColors: ["#3b82f6","#22c55e","#06b6d4"],
 };
 
-const GUEST_LIST = ["박상복","장선미","박시우","박은우","박준우","김재윤","송연우","송승화","김하준"];
-const INVITE_CODE = "BEST5";
+// 이름별 비밀번호 매핑
+const GUEST_PASSWORDS = {
+  "박상복": "8071",
+  "장선미": "1287",
+  "박시우": "5100",
+  "박은우": "9025",
+  "박준우": "9024",
+  "김재윤": "pw1111",
+  "송연우": "pw2222",
+  "송승화": "pw3333",
+  "김하준": "pw4444"
+};
 
 // (기존) 전달 수신자 — 고정값 → 선택형으로 대체 사용
 const ORGANIZER_NAME = "은우 엄마";
 const ORGANIZER_PHONE = "01083471287"; // 사용 안 해도 무방 (선택값 우선)
-const KAKAO_JS_KEY = "여기에_카카오_자바스크립트_키"; // Kakao.init()에 사용
 
 // ====== 유틸 ======
 const $ = (sel, root=document) => root.querySelector(sel);
@@ -95,15 +122,34 @@ const onlyDigits = s => (s || "").replace(/[^0-9]/g, "");
   const frag = document.createDocumentFragment();
   chips.forEach(t=>{ const c=document.createElement("span"); c.className="chip"; c.textContent=t; frag.appendChild(c); });
   $("#quickChips").appendChild(frag);
+  
+  const root = document.getElementById("scheduleList");
+  if (!root) return;
+  root.innerHTML = ""; // 초기화
 
-  // 전달 수신자 표시 초기화
-  updateRecipientDisplay();
+  Object.keys(EVENT_CONFIG.schedule).forEach(day => {
+    // Day 제목
+    const dayLi = document.createElement("li");
+    dayLi.className = "schedule-day";
+    dayLi.textContent = day;
+    root.appendChild(dayLi);
 
-  // Kakao SDK init (실키로 교체!)
-  try {
-    if (KAKAO_JS_KEY && window.Kakao && !Kakao.isInitialized()) Kakao.init(KAKAO_JS_KEY);
-    console.log("Kakao initialized:", Kakao?.isInitialized?.());
-  } catch (e) { console.warn("Kakao init error:", e); }
+    // Day 항목 컨테이너
+    const items = document.createElement("ul");
+    items.className = "schedule-items";
+    root.appendChild(items);
+
+    // 시간별 항목
+    EVENT_CONFIG.schedule[day].forEach(({time, desc}) => {
+      const li = document.createElement("li");
+      const t = document.createElement("span");
+      t.className = "schedule-time";
+      t.textContent = time;
+      li.appendChild(t);
+      li.appendChild(document.createTextNode(" - " + desc));
+      items.appendChild(li);
+    });
+  });
 })();
 
 // ====== 인증 로직 ======
@@ -117,19 +163,23 @@ gateForm.addEventListener("submit", (e)=>{
   const name = ($("#guestName").value || "").trim();
   const code = ($("#code").value || "").trim();
 
-  const matchName = name ? GUEST_LIST.some(n => n.toLowerCase() === name.toLowerCase()) : false;
-  const matchCode = code ? (code.toUpperCase() === INVITE_CODE.toUpperCase()) : false;
+  const password = ($("#code").value || "").trim();
+	const storedPw = GUEST_PASSWORDS[name] || null;
 
-  if(!matchName || !matchCode){
-    gateError.style.display="block";
-    return;
-  }
+	if (!storedPw || password !== storedPw) {
+	  gateError.style.display = "block";
+	  return;
+	}
   gateError.style.display="none";
   gateView.classList.remove("active");
   inviteView.classList.add("active");
   document.title = `🎉 ${EVENT_CONFIG.kidName} 초대장`;
 
-  $("#attendInfo").textContent = `${name}님, 참석 예정으로 기록했어요.`;
+	// ⬇️ 헤더 문구 교체
+	$("#brandTitle").textContent = `${EVENT_CONFIG.kidName}의 생일파티 초대장`;
+	$("#brandSubtitle").textContent = `${name}, 이번 내 생일파티 동료가 돼라!`;
+
+	// (선택) 축포 & URL 정리
   shootConfetti();
 
   history.replaceState(null,"", location.pathname + `?guest=${encodeURIComponent(name)}`);
@@ -183,28 +233,6 @@ function getSelectedRecipient(){
   const contacts = EVENT_CONFIG.contacts || {};
   return contacts[key] || contacts["mom"] || { label:"", name: ORGANIZER_NAME, phone: ORGANIZER_PHONE };
 }
-function updateRecipientDisplay(){
-  const r = getSelectedRecipient();
-  $("#hostDisplay").textContent = `${(r.name || r.label) || ""}${r.phone ? ` · ${r.phone}` : ""}`;
-}
-document.addEventListener("change", (e)=>{
-  if (e.target && e.target.id === "recipientSelect") updateRecipientDisplay();
-});
-
-// 카카오톡 공유 (수신자는 공유창에서 선택)
-async function sendViaKakao(){
-  const text = buildShareText();
-  if (!(window.Kakao && Kakao.isInitialized && Kakao.isInitialized())) {
-    alert("카카오 SDK 초기화가 필요해요. 도메인 등록 & JS키를 확인하세요.");
-    return;
-  }
-  Kakao.Share.sendDefault({
-    objectType: 'text',
-    text,
-    link: { mobileWebUrl: location.href, webUrl: location.href },
-    buttons: [{ title: '초대장 열기', link: { mobileWebUrl: location.href, webUrl: location.href } }]
-  });
-}
 
 // 문자 보내기 (선택된 수신자 번호로)
 function sendViaSMS(){
@@ -218,7 +246,6 @@ function sendViaSMS(){
   try{ location.href = smsUrl; }catch{ alert("문자 앱을 열 수 없는 환경입니다. 모바일에서 이용해 주세요."); }
 }
 
-$("#btnKakao").addEventListener("click", sendViaKakao);
 $("#btnSMS").addEventListener("click", sendViaSMS);
 
 // ====== confetti ======
