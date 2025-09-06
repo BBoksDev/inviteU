@@ -4,12 +4,12 @@ const EVENT_CONFIG = {
   kidAge: 11,
 
   // 일정
-  dateStr: "2025-10-11T14:00:00+09:00",
-  endStr:  "2025-10-12T11:00:00+09:00",
+  dateStr: "2025-09-20T13:30:00+09:00",
+  endStr:  "2025-09-21T12:00:00+09:00",
 
   // 만남(= 헤어짐) 장소
   meetPlace: "조천청소년문화의집",
-  meetAddress: "제주 제주시 조천읍 신북로 194-1",
+  meetAddress: "제주 제주시 조천읍 신북로 194-1 조천청소년문화의집",
   meetMapUrl: "https://naver.me/xCBNUtOH",
 
   // 파티/숙소
@@ -23,10 +23,10 @@ const EVENT_CONFIG = {
 };
 
 const GUEST_LIST = ["박상복","장선미","박시우","박은우","박준우","김재윤","송연우","송승화","김하준"];
-const INVITE_CODE = "BEST5";
+const INVITE_CODE = "JC5207";
 
 // 전달 수신자(문자 번호는 고정 가능)
-const ORGANIZER_NAME = "은우 엄마";
+const ORGANIZER_NAME = "은우엄마";
 const ORGANIZER_PHONE = "01083471287"; // 숫자만, 비워두면 수신자 미지정
 const KAKAO_JS_KEY = "여기에_카카오_자바스크립트_키"; // Kakao.init()에 사용
 
@@ -69,6 +69,9 @@ const fmtDateKST = (iso) => {
 
   // 연락처
   $("#contactText").textContent = EVENT_CONFIG.contact;
+	// 연락처 세팅
+	$("#contactLink").href = `tel:${ORGANIZER_PHONE}`;
+
 
   // 전달 수신자 표시
   $("#hostDisplay").textContent = `${ORGANIZER_NAME}${ORGANIZER_PHONE ? ` · ${ORGANIZER_PHONE}` : ""}`;
