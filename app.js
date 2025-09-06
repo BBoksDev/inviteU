@@ -45,6 +45,18 @@ const EVENT_CONFIG = {
   themeColors: ["#3b82f6","#22c55e","#06b6d4"],
 };
 
+document.addEventListener("DOMContentLoaded", ()=>{
+  const auth = loadAuth();
+  if (auth) {
+    // 바로 메인 화면
+    enterInvite(auth.name);
+  } else {
+    // 인증 화면
+    $("#invite").classList.remove("active");
+    $("#gate").classList.add("active");
+  }
+});
+
 // 이름별 비밀번호 매핑
 const GUEST_PASSWORDS = {
   "박상복": "8071",
@@ -153,6 +165,47 @@ const onlyDigits = s => (s || "").replace(/[^0-9]/g, "");
 })();
 
 // ====== 인증 로직 ======
+// ==== 인증 상태 저장 + 만료 ====
+const AUTH_STORAGE_KEY = "invite_auth_v1";
+const AUTH_TTL_MS = 1000 * 60 * 30; // 30분
+
+function saveAuth(name){
+  const data = { name, exp: Date.now() + AUTH_TTL_MS };
+  sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadAuth(){
+  try {
+    const raw = sessionStorage.getItem(AUTH_STORAGE_KEY);
+    if(!raw) return null;
+    const obj = JSON.parse(raw);
+    if(!obj || !obj.exp || !obj.name) return null;
+    if (Date.now() > obj.exp) { // 만료
+      sessionStorage.removeItem(AUTH_STORAGE_KEY);
+      return null;
+    }
+    return obj;
+  } catch { return null; }
+}
+
+function clearAuth(){
+  sessionStorage.removeItem(AUTH_STORAGE_KEY);
+}
+
+function enterInvite(name){
+  // 헤더 문구
+  $("#brandTitle").textContent = `${EVENT_CONFIG.kidName}의 생일파티 초대장`;
+  $("#brandSubtitle").textContent = `${name}, 이번 내 생일파티 동료가 돼라!`;
+
+  // 뷰 전환
+  $("#gate").classList.remove("active");
+  $("#invite").classList.add("active");
+
+  // (원래 있던 축포/타이틀 등)
+  document.title = `🎉 ${EVENT_CONFIG.kidName} 초대장`;
+  shootConfetti();
+}
+
 const gateForm = $("#gateForm");
 const gateError = $("#gateError");
 const inviteView = $("#invite");
@@ -170,19 +223,9 @@ gateForm.addEventListener("submit", (e)=>{
 	  gateError.style.display = "block";
 	  return;
 	}
-  gateError.style.display="none";
-  gateView.classList.remove("active");
-  inviteView.classList.add("active");
-  document.title = `🎉 ${EVENT_CONFIG.kidName} 초대장`;
-
-	// ⬇️ 헤더 문구 교체
-	$("#brandTitle").textContent = `${EVENT_CONFIG.kidName}의 생일파티 초대장`;
-	$("#brandSubtitle").textContent = `${name}, 이번 내 생일파티 동료가 돼라!`;
-
-	// (선택) 축포 & URL 정리
-  shootConfetti();
-
-  history.replaceState(null,"", location.pathname + `?guest=${encodeURIComponent(name)}`);
+  gateError.style.display = "none";
+  saveAuth(name);         // ✅ 인증 상태 저장(만료 포함)
+  enterInvite(name);      // ✅ 메인으로 진입
 });
 
 // 개별 주소 복사
