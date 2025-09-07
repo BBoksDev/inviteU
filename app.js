@@ -160,7 +160,7 @@ function delCookie(name){
 
 // 저장키/만료
 const AUTH_STORAGE_KEY = "invite_auth_v1";
-const AUTH_TTL_MS = 1000 * 60 * 30; // 30분
+const AUTH_TTL_MS = 1000 * 60 * 10; // 10분
 
 function saveAuth(name){
   CURRENT_GUEST_NAME = (name || "").trim() || CURRENT_GUEST_NAME || "게스트";
