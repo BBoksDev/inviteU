@@ -14,9 +14,18 @@
       <div class="logo" aria-hidden="true">🎉</div>
       <div class="brand">
         <h1 id="brandTitle">생일파티 초대장</h1>
-    		<p id="brandSubtitle" class="muted">게스트 인증 후 초대장을 확인하세요</p>
+        <p id="brandSubtitle" class="muted">게스트 인증 후 초대장을 확인하세요</p>
       </div>
     </header>
+
+    <!-- 🔹 인앱브라우저 감지 시 노출되는 외부 브라우저 유도 배너 -->
+    <div class="card hint extern-banner" id="openExternBanner" style="display:none">
+      인앱 브라우저에서 열렸어요. 외부 브라우저에서 더 안정적으로 이용할 수 있어요.
+      <div class="extern-actions">
+        <button id="openExternBtn" class="btn-ghost" type="button">외부 브라우저로 열기</button>
+        <button id="copyLinkBtn" class="btn-ghost" type="button">링크 복사</button>
+      </div>
+    </div>
 
     <div class="container">
       <!-- ✅ STEP 1: 인증 -->
@@ -33,7 +42,7 @@
           <div class="row">
             <div>
               <label for="code">비밀번호</label>
-							<input id="code" name="code" placeholder="비밀번호를 입력해주세요" type="password" required />
+              <input id="code" name="code" placeholder="비밀번호를 입력해주세요" type="password" required />
             </div>
           </div>
 
@@ -57,7 +66,7 @@
           <div class="card" style="grid-column:1 / -1">
             <div class="send-header">
               <div class="icon">📝</div>
-              <h3>초대문구</h3>
+              <h3>초대의 글</h3>
             </div>
             <div class="send-body">
               <img id="posterImg2" class="poster" src="images/invite.jpg" alt="초대의 글 이미지" loading="lazy" />
@@ -72,10 +81,10 @@
             <div>
               <h3>모이는 장소</h3>
               <div class="place-row">
-							  <span id="meetWhereText"></span>
-							  <button id="meetMapBtn" class="btn-naver" type="button">지도 열기</button>
-							  <button id="copyMeetAddr" class="btn-ghost" type="button">주소 복사</button>
-							</div>
+                <span id="meetWhereText"></span>
+                <button id="meetMapBtn" class="btn-naver" type="button">지도 열기</button>
+                <button id="copyMeetAddr" class="btn-ghost" type="button">주소 복사</button>
+              </div>
             </div>
           </div>
 
@@ -84,8 +93,8 @@
             <div>
               <h3>모이는 시간</h3>
               <div class="place-row">
-							  <span id="meetWhenText"></span>
-							</div>
+                <span id="meetWhenText"></span>
+              </div>
             </div>
           </div>
 
@@ -95,23 +104,21 @@
             <div>
               <h3>파티장소(숙소)</h3>
               <div class="place-row">
-							  <span id="partyWhereText"></span>
-							  <button id="partyMapBtn" class="btn-naver" type="button">지도 열기</button>
-							  <button id="copyPartyAddr" class="btn-ghost" type="button">주소 복사</button>
-							</div>
+                <span id="partyWhereText"></span>
+                <button id="partyMapBtn" class="btn-naver" type="button">지도 열기</button>
+                <button id="copyPartyAddr" class="btn-ghost" type="button">주소 복사</button>
+              </div>
             </div>
           </div>
 
-					<!-- 준비물 카드 -->
-					<div class="card info">
-					  <div class="icon">🎒</div>
-					  <div>
-					    <h3>준비물</h3>
-					    <ul id="stuffList" class="stuff">
-					      <!-- JS에서 항목 추가 -->
-					    </ul>
-					  </div>
-					</div>
+          <!-- 준비물 카드 -->
+          <div class="card info">
+            <div class="icon">🎒</div>
+            <div>
+              <h3>준비물</h3>
+              <ul id="stuffList" class="stuff"></ul>
+            </div>
+          </div>
 
           <div class="card" style="grid-column:1 / -1">
             <img id="posterImg" class="photo" src="images/poster.jpg" alt="초대 포스터 이미지" loading="lazy" />
@@ -130,38 +137,36 @@
           </div>
 
           <div class="card info">
-					  <div class="icon">📅</div>
-					  <div>
-					    <h3>일정 정보</h3>
-					    <ul id="scheduleList" class="schedule">
-					      <!-- JS에서 일정 항목 추가 -->
-					    </ul>
-					  </div>
-					</div>
+            <div class="icon">📅</div>
+            <div>
+              <h3>일정 정보</h3>
+              <ul id="scheduleList" class="schedule"></ul>
+            </div>
+          </div>
 
           <!-- ✅ 전달사항 -->
-					<div class="card send-wrap" style="grid-column:1 / -1">
-						<div class="send-header">
-						  <span class="icon">💬</span>
-						  <div class="send-title">
-						    <select id="recipientSelect" aria-label="받는 사람 선택">
-						      <option value="mom">👩🏻 은우엄마</option>
-						      <option value="dad">👨🏻 은우아빠</option>
-						    </select>
-						    <span>에게 전달사항 보내기</span>
-						  </div>
-						</div>
-					  <div class="send-body">
-					    <label for="hostNote" class="sr-only">전달메시지</label>
-					    <textarea id="hostNote" rows="5" placeholder="리조트 수영장은 미온수로 운영된대요.
+          <div class="card send-wrap" style="grid-column:1 / -1">
+            <div class="send-header">
+              <span class="icon">💬</span>
+              <div class="send-title">
+                <select id="recipientSelect" aria-label="받는 사람 선택">
+                  <option value="mom">👩🏻 은우엄마</option>
+                  <option value="dad">👨🏻 은우아빠</option>
+                </select>
+                <span>에게 메세지 보내기</span>
+              </div>
+            </div>
+            <div class="send-body">
+              <label for="hostNote" class="sr-only">전달메시지</label>
+              <textarea id="hostNote" rows="5" placeholder="리조트 수영장은 미온수로 운영된대요.
 돌아오는 날엔 집까지 데려다 주려해요😊
 집주소랑 못먹는 음식이나 알레르기 등
 전달하고 싶은 내용을 적어 보내주세요🙏"></textarea>
-					    <div class="actions">
-					      <button type="button" id="btnSMS">메세지 보내기</button>
-					    </div>
-					  </div>
-					</div>
+              <div class="actions">
+                <button type="button" id="btnSMS">메세지 보내기</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <footer>© <span id="year"></span> SiEunJun ABANG</footer>
