@@ -51,12 +51,6 @@ const EVENT_CONFIG = {
 // ====== 유틸 ======
 const $ = (sel, root=document) => root.querySelector(sel);
 const onlyDigits = s => (s || "").replace(/[^0-9]/g, "");
-const isAndroid = ()=> /android/.test(navigator.userAgent.toLowerCase());
-const isiOS = ()=> /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
-const isInAppBrowser = ()=>{
-  const ua = navigator.userAgent.toLowerCase();
-  return /kakaotalk|fbav|instagram|line/.test(ua);
-};
 const fmtDateKST = (iso) => {
   const d = new Date(iso);
   const dayNames = ["일","월","화","수","목","금","토"];
@@ -209,18 +203,6 @@ function enterInvite(name){
 
 // ====== DOMContentLoaded: 인앱 처리 + 인증 복원 + 토큰없는URL 자동보정 ======
 document.addEventListener("DOMContentLoaded", ()=>{
-  // 인앱이면 배너 노출 + (안드) 크롬 인텐트 자동 시도
-  if (isInAppBrowser()) {
-    const b = document.getElementById("openExternBanner");
-    if (b) b.style.display = "flex";
-    if (isAndroid()) {
-      const intentUrl =
-        `intent://${location.host}${location.pathname}${location.search}` +
-        `#Intent;scheme=${location.protocol.replace(':','')};package=com.android.chrome;end`;
-      setTimeout(()=>{ location.href = intentUrl; }, 300);
-    }
-  }
-
   // 인증 복원
   const auth = loadAuth();
   if (auth) {
