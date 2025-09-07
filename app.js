@@ -3,7 +3,6 @@ const EVENT_CONFIG = {
   kidName: "은우",
   kidAge: 11,
 
-  // 일정
   dateStr: "2025-09-20T13:30:00+09:00",
 
   // 만남(= 헤어짐) 장소
@@ -24,13 +23,11 @@ const EVENT_CONFIG = {
     "여벌옷 👕"
   ],
 
-  // 연락처(엄마/아빠)
   contacts: {
     mom: { label: "엄마", name: "은우엄마", phone: "010-8347-1287", note: "" },
     dad: { label: "아빠", name: "은우아빠", phone: "010-3119-8071", note: "" }
   },
-  
-  // 일정
+
   schedule: {
     "1일차": [
       { time: "13:30", desc: "모임 장소 집결" },
@@ -48,11 +45,10 @@ const EVENT_CONFIG = {
     ]
   },
 
-  // 색상 테마
   themeColors: ["#3b82f6","#22c55e","#06b6d4"],
 };
 
-// ====== 인앱/플랫폼 유틸 ======
+// ====== 유틸 ======
 const $ = (sel, root=document) => root.querySelector(sel);
 const onlyDigits = s => (s || "").replace(/[^0-9]/g, "");
 const isAndroid = ()=> /android/.test(navigator.userAgent.toLowerCase());
@@ -61,8 +57,6 @@ const isInAppBrowser = ()=>{
   const ua = navigator.userAgent.toLowerCase();
   return /kakaotalk|fbav|instagram|line/.test(ua);
 };
-
-// ====== 날짜 포맷 ======
 const fmtDateKST = (iso) => {
   const d = new Date(iso);
   const dayNames = ["일","월","화","수","목","금","토"];
@@ -75,28 +69,23 @@ const fmtDateKST = (iso) => {
   return `${y}년 ${m}월 ${day}일(${wd}) ${hh}:${mm}`;
 };
 
-// ====== 인증/토큰 저장소 ======
+// ====== 인증/토큰 ======
 const AUTH_STORAGE_KEY = "invite_auth_v1";
-// 🔸 TTL을 48시간으로 (당일/전날 안정성 높임)
-const AUTH_TTL_MS = 1000 * 60 * 60 * 48;
+const AUTH_TTL_MS = 1000 * 60 * 60 * 48; // 48시간
 
-// URL 토큰(HMAC 없이 경량) – 초대장 용도라 간소화
-function makeToken(payload) {
-  return btoa(encodeURIComponent(JSON.stringify(payload)));
-}
-function readToken(t) {
-  try { return JSON.parse(decodeURIComponent(atob(t))); }
-  catch { return null; }
-}
+// 경량 토큰(초대장 용도)
+function makeToken(payload) { return btoa(encodeURIComponent(JSON.stringify(payload))); }
+function readToken(t){ try { return JSON.parse(decodeURIComponent(atob(t))); } catch { return null; } }
 
-// 쿠키 백업(인앱/사파리 Private 등 localStorage 이슈 대비)
+// 쿠키: 안전 이스케이프 + SameSite/Secure
 function setCookie(name, value, days=7){
   const d = new Date(); d.setDate(d.getDate()+days);
-  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${d.toUTCString()}`;
+  let c = `${name}=${encodeURIComponent(value)}; path=/; expires=${d.toUTCString()}; SameSite=Lax`;
+  if (location.protocol === 'https:') c += '; Secure';
+  document.cookie = c;
 }
 function getCookie(name){
-  // ✅ 모든 정규식 메타문자 안전 이스케이프
-  const escaped = name.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
+  const escaped = name.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&'); // ✅ 안전 이스케이프
   const m = document.cookie.match(new RegExp('(?:^|; )' + escaped + '=([^;]*)'));
   return m ? decodeURIComponent(m[1]) : null;
 }
@@ -106,8 +95,8 @@ function saveAuth(name){
   localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
   setCookie(AUTH_STORAGE_KEY, JSON.stringify(data), 7);
 
-  // URL에 자동로그인 토큰(24h) 심기
-  const token = makeToken({ name, exp: Date.now() + (1000*60*60*24) });
+  // URL에 24h 토큰 심기(공유/재방문 대비)
+  const token = makeToken({ name, exp: Date.now() + 1000*60*60*24 });
   const url = new URL(location.href);
   url.searchParams.set("t", token);
   history.replaceState(null, "", url.toString());
@@ -115,13 +104,13 @@ function saveAuth(name){
 
 function loadAuth(){
   try {
-    // 1) localStorage
+    // localStorage
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
     if (raw) {
       const obj = JSON.parse(raw);
       if (obj?.exp && obj?.name && Date.now() <= obj.exp) return obj;
     }
-    // 2) cookie
+    // cookie
     const c = getCookie(AUTH_STORAGE_KEY);
     if (c) {
       const obj = JSON.parse(c);
@@ -130,7 +119,7 @@ function loadAuth(){
         return obj;
       }
     }
-    // 3) URL token
+    // URL token
     const t = new URL(location.href).searchParams.get("t");
     if (t) {
       const tok = readToken(t);
@@ -150,34 +139,27 @@ function clearAuth(){
 }
 
 function enterInvite(name){
-  // 헤더 문구
   $("#brandTitle").textContent = `${EVENT_CONFIG.kidName}의 생일파티 초대장`;
   $("#brandSubtitle").textContent = `${name}, 이번 내 생일파티 동료가 돼라!`;
-
-  // 뷰 전환
   $("#gate").classList.remove("active");
   $("#invite").classList.add("active");
-
   document.title = `🎉 ${EVENT_CONFIG.kidName} 초대장`;
   shootConfetti();
 }
 
-// ====== 초기 세팅(UI 렌더) ======
+// ====== 초기 렌더 ======
 (function init(){
-  // 색상 테마
   document.documentElement.style.setProperty("--primary", EVENT_CONFIG.themeColors[0] || "#3b82f6");
   document.documentElement.style.setProperty("--accent",  EVENT_CONFIG.themeColors[1] || "#22c55e");
   document.documentElement.style.setProperty("--accent-2",EVENT_CONFIG.themeColors[2] || "#06b6d4");
 
   $("#year").textContent = new Date().getFullYear();
   $("#kidName").textContent = `${EVENT_CONFIG.kidName}의 ${EVENT_CONFIG.kidAge}번째 생일파티에 초대합니다!`;
-  
-  // 장소/시간
+
   $("#meetWhereText").textContent = EVENT_CONFIG.meetPlace || EVENT_CONFIG.meetAddress;
   $("#meetWhenText").textContent  = fmtDateKST(EVENT_CONFIG.dateStr);
   $("#partyWhereText").textContent = EVENT_CONFIG.partyPlace || EVENT_CONFIG.partyAddress;
 
-  // 준비물
   const ul = document.getElementById("stuffList");
   if (ul && EVENT_CONFIG.stuff) {
     EVENT_CONFIG.stuff.forEach(item => {
@@ -187,7 +169,6 @@ function enterInvite(name){
     });
   }
 
-  // 연락처
   const mom = EVENT_CONFIG.contacts?.mom;
   const dad = EVENT_CONFIG.contacts?.dad;
   if (mom) {
@@ -201,7 +182,6 @@ function enterInvite(name){
     dadA.textContent = `${dad.name || dad.label}: ${dad.phone}${dad.note ? ` (${dad.note})` : ""}`;
   }
 
-  // 일정
   const root = document.getElementById("scheduleList");
   if (!root) return;
   root.innerHTML = "";
@@ -227,26 +207,31 @@ function enterInvite(name){
   });
 })();
 
-// ====== DOMContentLoaded: 인증 복구 + 인앱 처리 ======
+// ====== DOMContentLoaded: 인앱 처리 + 인증 복원 + 토큰없는URL 자동보정 ======
 document.addEventListener("DOMContentLoaded", ()=>{
-  // 인앱이면 배너 노출/안드로이드 자동 전환 시도
+  // 인앱이면 배너 노출 + (안드) 크롬 인텐트 자동 시도
   if (isInAppBrowser()) {
     const b = document.getElementById("openExternBanner");
     if (b) b.style.display = "flex";
-
-    // 안드로이드면 Chrome intent로 자동 시도(실패 시 그냥 남아있음)
     if (isAndroid()) {
       const intentUrl =
         `intent://${location.host}${location.pathname}${location.search}` +
         `#Intent;scheme=${location.protocol.replace(':','')};package=com.android.chrome;end`;
-      // 약간의 지연 후 시도(초기 렌더/주소 토큰 반영 여유)
       setTimeout(()=>{ location.href = intentUrl; }, 300);
     }
   }
 
-  // 인증 복구 → 자동 입장
+  // 인증 복원
   const auth = loadAuth();
   if (auth) {
+    // ⭕ 카톡에서 '옛 링크(토큰 없음)' 재클릭해 들어와도,
+    //    URL에 즉시 토큰을 붙여주어 이후 공유/재방문이 항상 토큰 포함이 되도록 보정
+    const url = new URL(location.href);
+    if (!url.searchParams.get("t")) {
+      const token = makeToken({ name: auth.name, exp: Date.now() + 1000*60*60*24 }); // 24h
+      url.searchParams.set("t", token);
+      history.replaceState(null, "", url.toString());
+    }
     enterInvite(auth.name);
   } else {
     $("#invite").classList.remove("active");
@@ -284,8 +269,8 @@ gateForm.addEventListener("submit", (e)=>{
     return;
   }
   gateError.style.display = "none";
-  saveAuth(name);         // ✅ 인증 상태 저장(+URL 토큰)
-  enterInvite(name);      // ✅ 메인으로 진입
+  saveAuth(name);         // 인증 저장 + URL 토큰 심기
+  enterInvite(name);
 });
 
 // ====== 지도/주소 ======
@@ -306,7 +291,7 @@ $("#partyMapBtn").addEventListener("click", ()=>{
   window.open(url, "_blank", "noopener");
 });
 
-// ====== 전달 로직 ======
+// ====== 전달(Web Share 먼저 → 실패 시 sms:) ======
 function buildShareText(){
   const gateNameInput = $("#guestName");
   const nameFromGate = (gateNameInput?.value || "").trim();
@@ -319,75 +304,37 @@ function buildShareText(){
     note ? `• 메모: ${note}` : `• 주소: \n• 메모: `
   ].filter(Boolean).join("\n");
 }
-
 function getSelectedRecipient(){
   const sel = $("#recipientSelect");
   const key = sel ? sel.value : "mom";
   const contacts = EVENT_CONFIG.contacts || {};
   return contacts[key] || contacts["mom"] || { label:"", name: ORGANIZER_NAME, phone: ORGANIZER_PHONE };
 }
-
-// ① Web Share API 우선 시도
 async function tryWebShare(text){
   try{
-    if (navigator.share) {
-      await navigator.share({ text });
-      return true;
-    }
-  }catch(e){
-    // 사용자가 취소한 경우도 여기로 들어올 수 있음 — 폴백 진행
-  }
+    if (navigator.share) { await navigator.share({ text }); return true; }
+  }catch{ /* 취소/미지원 → 폴백 */ }
   return false;
 }
-
-// ② 폴백: sms: 스킴 (iOS/Android query 차이 반영)
 function openSMSFallback(text){
   const ua = navigator.userAgent.toLowerCase();
-  const isIOS = /iphone|ipad|ipod/.test(ua);
+  const isi = /iphone|ipad|ipod/.test(ua);
   const r = getSelectedRecipient();
   const phone = (r.phone && onlyDigits(r.phone)) || onlyDigits(ORGANIZER_PHONE) || "";
   const body = encodeURIComponent(text);
-  const smsUrl = isIOS ? `sms:${phone}&body=${body}` : `sms:${phone}?body=${body}`;
+  const smsUrl = isi ? `sms:${phone}&body=${body}` : `sms:${phone}?body=${body}`;
   try { location.href = smsUrl; }
   catch { alert("문자 앱을 열 수 없는 환경입니다. 모바일에서 이용해 주세요."); }
 }
-
 async function sendViaSMS(){
   const text = buildShareText();
-
-  // ✅ 현재 이름 저장(문자 이동 전, 복귀 대비)
   const gateName = ($("#guestName").value || "게스트").trim();
-  if (gateName) saveAuth(gateName);
+  if (gateName) saveAuth(gateName); // 복귀 대비
 
-  // 1순위: Web Share (지원 브라우저/카톡 일부 버전에서 유지됨)
   const shared = await tryWebShare(text);
-  if (shared) return;
-
-  // 2순위: SMS 스킴
-  openSMSFallback(text);
+  if (!shared) openSMSFallback(text);
 }
 $("#btnSMS").addEventListener("click", sendViaSMS);
-
-// ====== 외부 브라우저 열기/링크 복사 버튼 ======
-document.getElementById("openExternBtn")?.addEventListener("click", ()=>{
-  if (isAndroid()) {
-    const intentUrl =
-      `intent://${location.host}${location.pathname}${location.search}` +
-      `#Intent;scheme=${location.protocol.replace(':','')};package=com.android.chrome;end`;
-    location.href = intentUrl;
-  } else if (isiOS()) {
-    alert("우측 상단 ••• 메뉴 → ‘Safari로 열기’를 눌러주세요.\n(사파리에서 열면 인증이 더 안정적이에요)");
-  }
-});
-
-document.getElementById("copyLinkBtn")?.addEventListener("click", async ()=>{
-  try{
-    await navigator.clipboard.writeText(location.href);
-    alert("링크를 복사했어요. 브라우저 주소창에 붙여넣거나, 사파리/크롬에서 열어주세요!");
-  }catch{
-    prompt("복사할 링크:", location.href);
-  }
-});
 
 // ====== confetti ======
 function shootConfetti(){
