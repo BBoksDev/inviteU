@@ -175,17 +175,17 @@ const AUTH_TTL_MS = 1000 * 60 * 30; // 30분
 
 function saveAuth(name){
   const data = { name, exp: Date.now() + AUTH_TTL_MS };
-  sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
 }
 
 function loadAuth(){
   try {
-    const raw = sessionStorage.getItem(AUTH_STORAGE_KEY);
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
     if(!raw) return null;
     const obj = JSON.parse(raw);
     if(!obj || !obj.exp || !obj.name) return null;
     if (Date.now() > obj.exp) { // 만료
-      sessionStorage.removeItem(AUTH_STORAGE_KEY);
+      localStorage.removeItem(AUTH_STORAGE_KEY);
       return null;
     }
     return obj;
@@ -193,7 +193,7 @@ function loadAuth(){
 }
 
 function clearAuth(){
-  sessionStorage.removeItem(AUTH_STORAGE_KEY);
+  localStorage.removeItem(AUTH_STORAGE_KEY);
 }
 
 function enterInvite(name){
