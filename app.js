@@ -27,7 +27,8 @@ const EVENT_CONFIG = {
   // 연락처(엄마/아빠)
   contacts: {
     mom: { label: "엄마", name: "은우엄마", phone: "010-8347-1287", note: "" },
-    dad: { label: "아빠", name: "은우아빠", phone: "010-3119-8071", note: "" }
+    dad: { label: "아빠", name: "은우아빠", phone: "010-3119-8071", note: "" },
+    me: { label: "은우", name: "은우", phone: "010-2870-9025", note: "" }
   },
   
   // 일정
@@ -104,6 +105,7 @@ let CURRENT_GUEST_NAME = "";
   // 연락처(엄마/아빠)
   const mom = EVENT_CONFIG.contacts?.mom;
   const dad = EVENT_CONFIG.contacts?.dad;
+  const me = EVENT_CONFIG.contacts?.me;
   if (mom) {
     const momA = $("#contactMom");
     momA.href = `tel:${onlyDigits(mom.phone)}`;
@@ -113,6 +115,11 @@ let CURRENT_GUEST_NAME = "";
     const dadA = $("#contactDad");
     dadA.href = `tel:${onlyDigits(dad.phone)}`;
     dadA.textContent = `${dad.name || dad.label}: ${dad.phone}${dad.note ? ` (${dad.note})` : ""}`;
+  }
+  if (me) {
+    const meA = $("#contactMe");
+    meA.href = `tel:${onlyDigits(me.phone)}`;
+    meA.textContent = `${me.name || me.label}: ${me.phone}${me.note ? ` (${me.note})` : ""}`;
   }
 
   // 일정
