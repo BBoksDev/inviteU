@@ -26,9 +26,9 @@ const EVENT_CONFIG = {
 
   // 연락처(엄마/아빠)
   contacts: {
-    mom: { label: "엄마", name: "은우엄마", phone: "010-8347-1287", note: "" },
-    dad: { label: "아빠", name: "은우아빠", phone: "010-3119-8071", note: "" },
-    me: { label: "은우", name: "은우", phone: "010-2870-9025", note: "" }
+    mom: { label: "엄마", name: "👩🏻 은우엄마", phone: "010-8347-1287", note: "" },
+    dad: { label: "아빠", name: "👨🏻 은우아빠", phone: "010-3119-8071", note: "" },
+    me: { label: "은우", name: "👦🏻 은우", phone: "010-2870-9025", note: "" }
   },
   
   // 일정

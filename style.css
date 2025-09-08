@@ -35,7 +35,7 @@ header{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
 .brand p{margin:2px 0 0;color:var(--muted);font-size:14px}
 
 .container{display:grid;gap:20px;grid-template-columns: 1fr;}
-@media (min-width: 880px){ .container{grid-template-columns: 420px 1fr;} }
+@media (min-width: 880px){ .container{grid-template-columns: 790px 1fr;} }
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding: clamp(16px, 2.6vw, 28px);}
 h2{margin:0 0 12px;font-size:22px}
 .muted{color:var(--muted)}
