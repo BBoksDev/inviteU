@@ -79,6 +79,8 @@ let CURRENT_GUEST_NAME = "";
 
 // ====== 초기 세팅 ======
 (function init(){
+	localStorage.clear()
+	sessionStorage.clear()
   // 색상 테마
   document.documentElement.style.setProperty("--primary", EVENT_CONFIG.themeColors[0] || "#3b82f6");
   document.documentElement.style.setProperty("--accent",  EVENT_CONFIG.themeColors[1] || "#22c55e");
