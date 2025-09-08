@@ -218,6 +218,13 @@ function clearAuth(){
 
 function enterInvite(name){
   CURRENT_GUEST_NAME = (name || CURRENT_GUEST_NAME || "게스트").trim();
+  
+  if (CURRENT_GUEST_NAME === "게스트") {
+  	localStorage.clear();
+		sessionStorage.clear();
+		delCookie("invite_auth_v1");
+  }
+  
   $("#brandTitle").textContent = `${EVENT_CONFIG.kidName}의 생일파티 초대장`;
   $("#brandSubtitle").textContent = `${CURRENT_GUEST_NAME}, 이번 내 생일파티 동료가 돼라!`;
 
